@@ -1,0 +1,10 @@
+#basic template for adding ansible user to an already running server 
+useradd -m -G sudo ansible
+su -c "mkdir -p ~/.ssh/" ansible
+echo ["sshkey"] >> /home/ansible/.ssh/authorized_keys
+chown ansible:ansible /home/ansible/.ssh/authorized_keys
+chmod 664 /home/ansible/.ssh/authorized_keys 
+# CAREFUL WITH THE SSHD CONFIG #
+echo -e "Include /etc/ssh/sshd_config.d/*.conf\nPort 22\nLoginGraceTime 2m\nPermitRootLogin no\nStrictModes yes\nMaxAuthTries 6\nMaxSessions 10\nPasswordAuthentication no\nPubkeyAuthentication yes\nAllowUsers ansible\nAuthorizedKeysFile      .ssh/authorized_keys\nChallengeResponseAuthentication no\nUsePAM yes\nX11Forwarding yes\nPrintMotd no\nAcceptEnv LANG LC_*\nSubsystem       sftp    /usr/lib/openssh/sftp-server\n" | tee /etc/ssh/sshd_config
+systemctl restart sshd
+systemctl status sshd
